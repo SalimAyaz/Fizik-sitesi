@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Etkileşimli Eğik Atış Simülasyonu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .simulation-layout {
+            display: flex;
+            max-width: 1200px;
+            margin: 40px auto;
+            background-color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Sol Panel: Grafik Alanı */
+        .graph-panel {
+            flex: 2; 
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .graph-panel h1 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .graph-display {
+            position: relative; 
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 450px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Kendi Resminizin Stili */
+        img.sim-image {
+            max-width: 95%; 
+            height: auto;
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Resmi tam ortalar */
+        }
+
+        .shutterstock-label {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            font-size: 0.7em;
+            color: #999;
+            z-index: 20;
+        }
+
+        /* Tıklanabilir Alanlar için Kapsayıcı */
+        .clickable-area-container {
+            position: absolute;
+            top: 0; 
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10; 
+        }
+
+        /* Tıklanabilir Alanların Ortak Stili */
+        .clickable-area {
+            position: absolute;
+            background-color: transparent; 
+            cursor: pointer;
+            z-index: 15;
+            border: 2px solid transparent; /* Varsayılan olarak şeffaf çerçeve */
+            transition: border 0.1s ease-in-out; 
+        }
+
+        /* HOVER EFEKTİ: Fare üzerine geldiğinde çerçeve görünür */
+        .clickable-area:hover {
+            border: 2px dashed rgba(0, 150, 255, 0.7); 
+        }
+
+
+        /* Sağ Panel: Akordeon Menü Stilleri */
+        .menu-panel {
+            flex: 1; 
+            background-color: #ffffff; 
+            border-left: 1px solid #eee;
+            min-width: 300px;
+            padding: 10px 0;
+        }
+
+        .accordion-header {
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+            padding: 15px 20px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            font-size: 1em;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-header:hover {
+            background-color: #f1f1f1;
+        }
+
+        .accordion-header.active {
+            background-color: #e0f7fa; 
+            color: #00bcd4;
+            font-weight: bold;
+        }
+
+        .accordion-header i {
+            transition: transform 0.3s;
+        }
+
+        .accordion-header.active i {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            padding: 0 20px;
+            background-color: #fff;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+
+        .accordion-content.open {
+            max-height: 500px; 
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .accordion-content p, .accordion-content ul {
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .accordion-content ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="simulation-layout">
+        
+        <div class="graph-panel">
+            <h1>İki Boyutlu Sabit İvmeli Hareket (Eğik Atış)</h1>
+            <div class="graph-display">
+                
+                <img src="egik_atis.png" alt="Eğik Atış Hareketi Grafiği" class="sim-image">
+
+                <div class="clickable-area-container">
+                    
+                    <div class="clickable-area" data-target-accordion="initial-velocity" 
+                         style="top: 60%; left: 10%; width: 7%; height: 15%;" title="Başlangıç Hızı V0"></div>
+                    
+                    <div class="clickable-area" data-target-accordion="max-height" 
+                         style="top: 32%; left: 41%; width: 5%; height: 45%;" title="Maksimum Yükseklik H"></div>
+                    
+                    <div class="clickable-area" data-target-accordion="range" 
+                         style="top: 76%; left: 6%; width: 75%; height: 5%;" title="Menzil L"></div>
+
+                    <div class="clickable-area" data-target-accordion="ascent" 
+                         style="top: 40%; left: 15%; width: 20%; height: 30%;" title="Yükseliş Hızları"></div>
+
+                    <div class="clickable-area" data-target-accordion="max-velocity" 
+                         style="top: 22%; left: 39%; width: 10%; height: 10%;" title="Tepe Noktasında Hız"></div>
+
+                    <div class="clickable-area" data-target-accordion="descent" 
+                         style="top: 40%; left: 55%; width: 20%; height: 30%;" title="İniş Hızları"></div>
+                </div>
+                
+                <div class="shutterstock-label">Shutterstock</div>
+            </div>
+        </div>
+
+        <div class="menu-panel">
+            <div class="accordion">
+                <button class="accordion-header" data-target="overview">Genel Bakış <i class="fas fa-chevron-down"></i></button>
+                <div class="accordion-content" id="overview"><p>Eğik atış, yerçekimi ivmesi (**g**) etkisi altında iki boyutta gerçekleşen **sabit ivmeli hareketin** klasik bir örneğidir.</p></div>
+                
+                <button class="accordion-header" data-target="coordinate">Koordinat Sistemi ve Yörünge <i class="fas fa-chevron-down"></i></button>
+                <div class="accordion-content" id="coordinate"><p>Hareket, yatay **X** ve dikey **Y** eksenleri kullanılarak incelenir. Yörünge daima **parabolik** bir şekle sahiptir.</p></div>
+
+                <button class="accordion-header" data-target="initial-velocity">Başlangıç Hızı (**V₀**) <i class="fas fa-chevron-down"></i></button>
+                <div class="accordion-content" id="initial-velocity"><p>Başlangıç hızı (**V₀**), atış açısına göre yatay (**V₀x**) ve dikey (**V₀y**) bileşenlerine ayrılır.</p></div>
+                
+                <button class="accordion-header" data-target="max-height">Maksimum Yükseklik (H) <i class="fas fa-chevron-down"></i></button>
+                <div class="accordion-content" id="max-height"><p>Cismin dikey hızının (**V_y**) sıfır olduğu en yüksek noktadır.</p></div>
+
+                <button class="accordion-header" data-target="range">Menzil (L) <i class="fas fa-chevron-down"></i></button>
+                <div class="accordion-content" id="range"><p>Cismin yatayda katettiği toplam mesafedir.</p></div>
+                
+                <button class="accordion-header" data-target="ascent">Yükseliş Sırasında Hız Bileşenleri <i class="fas fa-chevron-down"></i></button>
+                <div class="accordion-content" id="ascent"><p>Cisim yukarı doğru hareket ederken: <ul><li>**Yatay Hız (V_x):** Sabit kalır.</li><li>**Dikey Hız (V_y):** Sürekli **azalır**.</li></ul></p></div>
+                
+                <button class="accordion-header" data-target="max-velocity">Tepe Noktasında Hız <i class="fas fa-chevron-down"></i></button>
+                <div class="accordion-content" id="max-velocity"><p>Maksimum yükseklikte dikey hız **sıfırdır** (**V_y** = 0). Cismin bu noktada sadece yatay hızı (**V_x**) mevcuttur.</p></div>
+
+                <button class="accordion-header active" data-target="descent">İniş Sırasında Hız Bileşenleri <i class="fas fa-chevron-up"></i></button>
+                <div class="accordion-content open" id="descent"><p>Cisim aşağı doğru hareket ederken: <ul><li>**Yatay Hız (V_x):** Sabit kalmaya **devam eder**.</li><li>**Dikey Hız (V_y):** Yerçekimi nedeniyle hızı **artmaya başlar**.</li></ul></p></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const headers = document.querySelectorAll('.accordion-header');
+            const clickableAreas = document.querySelectorAll('.clickable-area');
+
+            // Akordeon Açma/Kapama İşlevi
+            function toggleAccordion(targetId) {
+                // Tüm içerikleri kapat ve başlıkları inaktif yap
+                headers.forEach(h => {
+                    h.classList.remove('active');
+                    const contentElement = document.getElementById(h.getAttribute('data-target'));
+                    if (contentElement) contentElement.classList.remove('open');
+                });
+
+                // Hedeflenen maddeyi bul ve aç
+                const targetHeader = document.querySelector(`.accordion-header[data-target="${targetId}"]`);
+                const targetContent = document.getElementById(targetId);
+
+                // Eğer hem başlık hem de içerik varsa işlemi yap
+                if (targetHeader && targetContent) {
+                    targetHeader.classList.add('active');
+                    targetContent.classList.add('open');
+                }
+            }
+
+            // 1. Sağdaki Akordeon Başlıkları İçin Olay Dinleyici (Normal tıklama)
+            headers.forEach(header => {
+                header.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const is_open = this.classList.contains('active');
+                    
+                    // Eğer zaten açıksa, kapat (toggle)
+                    if (is_open) {
+                        this.classList.remove('active');
+                        document.getElementById(targetId).classList.remove('open');
+                    } else {
+                        toggleAccordion(targetId);
+                    }
+                });
+            });
+
+            // 2. Soldaki Tıklanabilir Alanlar İçin Olay Dinleyici (Görsel üzerindeki tıklama)
+            clickableAreas.forEach(area => {
+                area.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target-accordion');
+                    // Tıklanan alana karşılık gelen akordeonu aç
+                    toggleAccordion(targetId);
+                });
+            });
+
+            // Yüklenirken varsayılan olarak açık tut
+            toggleAccordion('descent');
+        });
+    </script>
+</body>
+</html>
